@@ -14,11 +14,9 @@ def scratchpad():
         ]
     )
     return node.to_html()
-    pass
 
 
 def main():
-    # Default no-op; CLI handling moved to runner block below.
     pass
 
 

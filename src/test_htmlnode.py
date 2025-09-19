@@ -167,10 +167,3 @@ class TestParentNode(unittest.TestCase):
 		props = {"data-b": "2", "data-a": "1", "id": "x"}
 		parent = ParentNode("div", [LeafNode(None, "y")], props=props)
 		self.assertEqual(parent.to_html(), '<div data-b="2" data-a="1" id="x">y</div>')
-
-if __name__ == "__main__":
-	unittest.main()
-
-
-
-
