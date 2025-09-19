@@ -38,3 +38,19 @@ class TestTextNode(unittest.TestCase):
         node2 = TextNode("Image", TextType.HYPERLINK, url="http://image.com/img.png")
         self.assertNotEqual(node1, node2, "TextNodes with different types should not be equal")
         
+    def test_textnode_equality_non_textnode(self):
+        node = TextNode("Hello")
+        self.assertNotEqual(node, "Hello", "TextNode should not be equal to a non-TextNode instance")
+
+    def test_textnode_repr_basic(self):
+        node = TextNode("Hello")
+        # Default type is TEXT and url is None
+        self.assertEqual(repr(node), "TextNode(Hello, text, None)")
+
+    def test_textnode_repr_with_url(self):
+        node = TextNode("Link", TextType.HYPERLINK, url="http://example.com")
+        self.assertEqual(repr(node), "TextNode(Link, hyperlink, http://example.com)")
+
+    def test_textnode_repr_image_no_url(self):
+        node = TextNode("Image", TextType.IMAGE)
+        self.assertEqual(repr(node), "TextNode(Image, image, None)")
