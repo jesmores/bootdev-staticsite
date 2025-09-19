@@ -17,3 +17,8 @@ build-backend = "hatchling.build"
 [tool.uv]
 # Prefer creating a local .venv for this project
 package = false
+
+[dependency-groups]
+dev = [
+  "coverage>=7.6",
+]
