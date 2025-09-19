@@ -73,10 +73,13 @@ class TestLeafNode(unittest.TestCase):
 		node = LeafNode(tag="a", value="Click", props=props)
 		self.assertEqual(node.to_html(), '<a href="http://example.com" target="_blank">Click</a>')
 
-	def test_to_html_raises_when_no_value(self):
+	def test_to_html_allows_empty_value(self):
 		node = LeafNode(tag="span", value="")
-		with self.assertRaises(ValueError):
-			node.to_html()
+		self.assertEqual(node.to_html(), "<span></span>")
+
+	def test_to_html_handles_none_value_as_empty(self):
+		node = LeafNode(tag="span", value=None)
+		self.assertEqual(node.to_html(), "<span></span>")
 
 	def test_to_html_allows_empty_tag(self):
 		node = LeafNode(tag="", value="Hello")
