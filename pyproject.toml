@@ -1,0 +1,19 @@
+[project]
+name = "bootdev-staticsite"
+version = "0.1.0"
+description = "Static site builder kata (Boot.dev) — HTML node utilities"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "jesmores" }
+]
+dependencies = []
+
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Prefer creating a local .venv for this project
+package = false
