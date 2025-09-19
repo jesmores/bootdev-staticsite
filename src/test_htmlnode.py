@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestHTMLNode(unittest.TestCase):
 	def test_init_defaults(self):
@@ -104,6 +104,73 @@ class TestLeafNode(unittest.TestCase):
 		self.assertIn("children=None", rep)
 		self.assertIn("props={'class': 'badge'}", rep)
 
+class TestParentNode(unittest.TestCase):
+	def test_parent_basic(self):
+		parent = ParentNode(
+			"p",
+			[
+				LeafNode("b", "Bold"),
+				LeafNode(None, " text"),
+			]
+		)
+		self.assertEqual(parent.to_html(), "<p><b>Bold</b> text</p>")
+
+	def test_parent_with_props(self):
+		parent = ParentNode(
+			"div",
+			[LeafNode("span", "x")],
+			props={"class": "box", "id": "main"}
+		)
+		self.assertEqual(parent.to_html(), '<div class="box" id="main"><span>x</span></div>')
+
+	def test_parent_nested(self):
+		inner = ParentNode("em", [LeafNode(None, "inner")])
+		outer = ParentNode("strong", [LeafNode(None, "pre "), inner, LeafNode(None, " post")])
+		self.assertEqual(outer.to_html(), "<strong>pre <em>inner</em> post</strong>")
+
+	def test_parent_raises_no_tag(self):
+		with self.assertRaises(ValueError):
+			ParentNode("", [LeafNode(None, "x")]).to_html()
+
+	def test_parent_raises_no_children(self):
+		with self.assertRaises(ValueError):
+			ParentNode("div", []).to_html()
+
+	def test_parent_deeply_nested_four_levels(self):
+		# div > section > article > p > span(text)
+		leaf = LeafNode("span", "deep")
+		p = ParentNode("p", [leaf])
+		article = ParentNode("article", [p])
+		section = ParentNode("section", [article])
+		deep = ParentNode("div", [section])
+		expected = "<div><section><article><p><span>deep</span></p></article></section></div>"
+		self.assertEqual(deep.to_html(), expected)
+
+	def test_parent_mixed_text_and_elements(self):
+		parent = ParentNode(
+			"p",
+			[
+				LeafNode(None, "A "),
+				LeafNode("b", "B"),
+				LeafNode(None, " C"),
+				LeafNode("i", "I"),
+			]
+		)
+		self.assertEqual(parent.to_html(), "<p>A <b>B</b> C<i>I</i></p>")
+
+	def test_parent_inner_parent_with_props(self):
+		inner = ParentNode("section", [LeafNode(None, "X")], props={"data-s": "1"})
+		outer = ParentNode("div", [inner], props={"id": "root"})
+		self.assertEqual(outer.to_html(), '<div id="root"><section data-s="1">X</section></div>')
+
+	def test_parent_props_order_preserved(self):
+		props = {"data-b": "2", "data-a": "1", "id": "x"}
+		parent = ParentNode("div", [LeafNode(None, "y")], props=props)
+		self.assertEqual(parent.to_html(), '<div data-b="2" data-a="1" id="x">y</div>')
+
 if __name__ == "__main__":
 	unittest.main()
+
+
+
 
