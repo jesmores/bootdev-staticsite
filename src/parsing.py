@@ -148,5 +148,19 @@ def text_to_textnodes(text:str) -> list[TextNode]:
 
 
 def markdown_to_blocks(md_text:str) -> list[str]:
-    """Splits markdown text into blocks that were delimited by double newlines"""
-    return [block.strip() for block in re.split(r"\n\s*\n", md_text) if block.strip()]
+    """Splits markdown text into logical blocks for further processing"""
+    blocks = []
+    block_simple_delimiter = r"\n\s*\n"
+    block_code_delimiter = r"(```.*?```)"
+    # first break out the code blocks (so that we can preserve the whitespace inside them)
+    blocks_after_code = re.split(block_code_delimiter, md_text, flags=re.DOTALL)
+    # next break up the rest of the block but ignore the code blocks
+    for block in blocks_after_code:
+        if re.match(block_code_delimiter, block, flags=re.DOTALL):
+            blocks.append(block)
+        else:
+            sub_blocks = re.split(block_simple_delimiter, block)
+            blocks.extend([b.strip() for b in sub_blocks if b.strip()])
+    return blocks
+
+

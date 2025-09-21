@@ -590,6 +590,11 @@ class TestBlockSplitter(unittest.TestCase):
         text = "This is a single block of text."
         result = markdown_to_blocks(text)
         self.assertListEqual([text], result)
+    
+    def test_no_text(self):
+        text = "\n\n\n"
+        result = markdown_to_blocks(text)
+        self.assertListEqual([], result)
 
     def test_multiple_blocks(self):
         text = "First block.\n\nSecond block.\n\nThird block."
@@ -629,8 +634,39 @@ class TestBlockSplitter(unittest.TestCase):
             ["This is a block\nwith a single newline.", "Now this is \na new block."],
             result
         )
-
-    def test_no_text(self):
-        text = "\n\n\n"
+    
+    def test_code_blocks(self):
+        text = "Here is some code:\n\n```\ndef foo():\n    return 'bar'\n```\n\nAnd some more text."
         result = markdown_to_blocks(text)
-        self.assertListEqual([], result)
+        self.assertListEqual(
+            [
+                "Here is some code:",
+                "```\ndef foo():\n    return 'bar'\n```",
+                "And some more text."
+            ],
+            result
+        )
+    
+    def test_code_blocks_preserve_newlines(self):
+        text = "Here is a cobe block:\n\n```This code block\n\nhas internal blocks\nwith newlines\n\nand another block.```\n\nThey should have been preserved."
+        result = markdown_to_blocks(text)
+        self.assertListEqual(
+            [
+                "Here is a cobe block:",
+                "```This code block\n\nhas internal blocks\nwith newlines\n\nand another block.```",
+                "They should have been preserved."
+            ],
+            result
+        )
+    
+    def test_code_blocks_surrounded_by_whitespace(self):
+        text = "Here is a code block:  \t  ```This code block\n\nNew Block\nNew Line\n\nAnother block.```  \n\nEnd Text."
+        result = markdown_to_blocks(text)
+        self.assertListEqual(
+            [
+                "Here is a code block:",
+                "```This code block\n\nNew Block\nNew Line\n\nAnother block.```",
+                "End Text."
+            ],
+            result
+        )
