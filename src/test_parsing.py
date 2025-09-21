@@ -648,12 +648,12 @@ class TestBlockSplitter(unittest.TestCase):
         )
     
     def test_code_blocks_preserve_newlines(self):
-        text = "Here is a cobe block:\n\n```This code block\n\nhas internal blocks\nwith newlines\n\nand another block.```\n\nThey should have been preserved."
+        text = "Here is a cobe block:\n\n```This code block\n\nhas internal blocks\nwith newlines\n\t\nand another block.```\n\nThey should have been preserved."
         result = markdown_to_blocks(text)
         self.assertListEqual(
             [
                 "Here is a cobe block:",
-                "```This code block\n\nhas internal blocks\nwith newlines\n\nand another block.```",
+                "```This code block\n\nhas internal blocks\nwith newlines\n\t\nand another block.```",
                 "They should have been preserved."
             ],
             result
@@ -670,3 +670,46 @@ class TestBlockSplitter(unittest.TestCase):
             ],
             result
         )
+
+
+class TestBlockToBlockType(unittest.TestCase):
+    def test_heading_block(self):
+        self.assertEqual(block_to_block_type("# Heading"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("### Heading"), BlockType.HEADING)
+        self.assertEqual(block_to_block_type("###### Heading"), BlockType.HEADING)
+
+    def test_not_heading_too_many_hashes(self):
+        self.assertEqual(block_to_block_type("####### Not a heading"), BlockType.PARAGRAPH)
+
+    def test_not_heading_no_space(self):
+        self.assertEqual(block_to_block_type("#no-space"), BlockType.PARAGRAPH)
+
+    def test_code_block(self):
+        self.assertEqual(block_to_block_type("```code```"), BlockType.CODEBLOCK)
+        self.assertEqual(block_to_block_type("```\ncode\nblock\n```"), BlockType.CODEBLOCK)
+
+    def test_quote_block(self):
+        self.assertEqual(block_to_block_type("> quote"), BlockType.QUOTE)
+        self.assertEqual(block_to_block_type("> quote1\n> quote2"), BlockType.QUOTE)
+        self.assertEqual(block_to_block_type("> quote1\n\t\t> quote2\n\t> quote3"), BlockType.QUOTE)
+        self.assertEqual(block_to_block_type(">quote with no space\n>another quote with no space\n> quote with space"), BlockType.QUOTE)
+        self.assertNotEqual(block_to_block_type("extra text >quote text"), BlockType.QUOTE)
+
+    def test_unordered_list_block(self):
+        self.assertEqual(block_to_block_type("- item1"), BlockType.UNORDERED_LIST)
+        self.assertEqual(block_to_block_type("- item1\n- item2"), BlockType.UNORDERED_LIST)
+        self.assertEqual(block_to_block_type("- item1\n    - item2"), BlockType.UNORDERED_LIST)
+        self.assertNotEqual(block_to_block_type("-itemA"), BlockType.UNORDERED_LIST)
+        self.assertNotEqual(block_to_block_type("- itemA\n    -itemB"), BlockType.UNORDERED_LIST)
+
+    def test_ordered_list_block(self):
+        self.assertEqual(block_to_block_type("1. item1\n2. item2"), BlockType.ORDERED_LIST)
+        self.assertEqual(block_to_block_type("1. item1\n3. item2"), BlockType.ORDERED_LIST)
+        self.assertEqual(block_to_block_type("321. item1\n   332. item2"), BlockType.ORDERED_LIST)
+        self.assertNotEqual(block_to_block_type("1.itemA"), BlockType.ORDERED_LIST)
+        self.assertNotEqual(block_to_block_type("1. itemA\n   2.itemB"), BlockType.ORDERED_LIST)
+
+    def test_paragraph_block(self):
+        self.assertEqual(block_to_block_type("Just a paragraph."), BlockType.PARAGRAPH)
+        self.assertEqual(block_to_block_type("1) not an ordered list"), BlockType.PARAGRAPH)
+        self.assertEqual(block_to_block_type("hello >not a quote"), BlockType.PARAGRAPH)

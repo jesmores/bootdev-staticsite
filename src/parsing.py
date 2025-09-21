@@ -3,6 +3,14 @@ from textnode import *
 from htmlnode import *
 import copy
 
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODEBLOCK = "codeblock"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
+
 
 def extract_markdown_images(text:str) -> list[str]:
     """Extracts all markdown image URLs from the given text.
@@ -164,3 +172,18 @@ def markdown_to_blocks(md_text:str) -> list[str]:
     return blocks
 
 
+def block_to_block_type(block:str) -> BlockType:
+    # Note the following regexes assume the blocks have been stripped of leading/trailing whitespace
+    match block:
+        case b if re.match(r"^#{1,6}\s", b):
+            return BlockType.HEADING
+        case b if re.match(r"^```.*```$", b, flags=re.DOTALL):
+            return BlockType.CODEBLOCK
+        case b if re.match(r"^(?:\s*?>[^\n]*\s*?)+$", b):
+            return BlockType.QUOTE
+        case b if re.match(r"^(?:\s*?- [^\n]*\s*?)+$", b):
+            return BlockType.UNORDERED_LIST
+        case b if re.match(r"^(?:\s*?\d+\. [^\n]*\s*?)+$", b):
+            return BlockType.ORDERED_LIST
+        case _:
+            return BlockType.PARAGRAPH
