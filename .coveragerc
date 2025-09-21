@@ -1,10 +1,10 @@
 [run]
 source = src
 branch = true
-
-[report]
 omit =
     src/test_*.py
     **/__pycache__/*
+
+[report]
 show_missing = true
 precision = 1
