@@ -583,3 +583,54 @@ class TestParseTextToTextNodes(unittest.TestCase):
             ],
             result,
         )
+
+
+class TestBlockSplitter(unittest.TestCase):
+    def test_single_block(self):
+        text = "This is a single block of text."
+        result = markdown_to_blocks(text)
+        self.assertListEqual([text], result)
+
+    def test_multiple_blocks(self):
+        text = "First block.\n\nSecond block.\n\nThird block."
+        result = markdown_to_blocks(text)
+        self.assertListEqual(
+            ["First block.", "Second block.", "Third block."], result
+        )
+
+    def test_leading_trailing_newlines(self):
+        text = "\n\nLeading newlines.\n\nTrailing newlines.\n\n"
+        result = markdown_to_blocks(text)
+        self.assertListEqual(["Leading newlines.", "Trailing newlines."], result)
+
+    def test_consecutive_newlines(self):
+        text = "Block one.\n\n\n\nBlock two after multiple newlines."
+        result = markdown_to_blocks(text)
+        self.assertListEqual(
+            ["Block one.", "Block two after multiple newlines."], result
+        )
+
+    def test_blanklines_with_whitespace(self):
+        text = "Block one\n  \n\nBlock Two.\n\n\t\n\t\nBlock Three."
+        result = markdown_to_blocks(text)
+        self.assertListEqual(["Block one", "Block Two.", "Block Three."], result)
+
+    def test_excess_newlines_and_whitespace(self):
+        text = "  \t\n\n  Block with leading/trailing spaces.  \n\t\n\n  Another block.  \n  "
+        result = markdown_to_blocks(text)
+        self.assertListEqual(
+            ["Block with leading/trailing spaces.", "Another block."], result
+        )
+    
+    def test_single_newlines_no_split(self):
+        text = "\n\nThis is a block\nwith a single newline.\n\t\t   \nNow this is \na new block.\n"
+        result = markdown_to_blocks(text)
+        self.assertListEqual(
+            ["This is a block\nwith a single newline.", "Now this is \na new block."],
+            result
+        )
+
+    def test_no_text(self):
+        text = "\n\n\n"
+        result = markdown_to_blocks(text)
+        self.assertListEqual([], result)

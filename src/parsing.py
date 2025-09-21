@@ -146,3 +146,7 @@ def text_to_textnodes(text:str) -> list[TextNode]:
     
     return nodes
 
+
+def markdown_to_blocks(md_text:str) -> list[str]:
+    """Splits markdown text into blocks that were delimited by double newlines"""
+    return [block.strip() for block in re.split(r"\n\s*\n", md_text) if block.strip()]
