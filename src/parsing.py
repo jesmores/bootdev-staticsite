@@ -1,5 +1,33 @@
+import re
 from textnode import *
 from htmlnode import *
+
+
+def extract_markdown_images(text:str) -> list[str]:
+    """Extracts all markdown image URLs from the given text.
+
+    Args:
+        text (str): The text to extract image URLs from.
+
+    Returns:
+        list[str]: A list of image URLs found in the text.
+    """
+    mkd_img_pattern = r"(!\[(.+?)\]\((.+?)\))"
+    return re.findall(mkd_img_pattern, text)
+
+
+def extract_markdown_links(text:str) -> list[str]:
+    """Extracts all markdown link URLs from the given text.
+
+    Args:
+        text (str): The text to extract link URLs from.
+
+    Returns:
+        list[str]: A list of link URLs found in the text.
+    """
+    mkd_link_pattern = r"((?<!!)\[(.+?)\]\((.+?)\))"
+    return re.findall(mkd_link_pattern, text)
+
 
 def split_nodes_delimiter(old_nodes:list[TextNode], delimiter:str, text_type:TextType) -> list[TextNode]:
     """Splits TextNodes in old_nodes by the given delimiter, inserting new TextNodes of the given text_type for the delimiters.

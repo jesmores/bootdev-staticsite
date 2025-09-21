@@ -1,7 +1,7 @@
 import unittest
 
-from parsing import split_nodes_delimiter
-from textnode import TextNode, TextType
+from parsing import *
+from textnode import *
 
 
 class TestParsing(unittest.TestCase):
@@ -99,8 +99,86 @@ class TestParsing(unittest.TestCase):
             ],
             new_nodes,
         )
-   
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestExtractMarkdownImages(unittest.TestCase):
+    def test_single_image(self):
+        text = "An image: ![Alt text](https://example.com/img.png)."
+        self.assertEqual(
+            extract_markdown_images(text),
+            [
+                (
+                    "![Alt text](https://example.com/img.png)",
+                    "Alt text",
+                    "https://example.com/img.png",
+                )
+            ],
+        )
+
+    def test_multiple_images(self):
+        text = "Here is ![one](a.png) and also ![two](b.jpg) in a line."
+        self.assertEqual(
+            extract_markdown_images(text),
+            [
+                ("![one](a.png)", "one", "a.png"),
+                ("![two](b.jpg)", "two", "b.jpg"),
+            ],
+        )
+
+    def test_no_images(self):
+        text = "There are no images here."
+        self.assertEqual(extract_markdown_images(text), [])
+
+    def test_not_link_but_similar(self):
+        # Plain links shouldn't be captured by image extractor
+        text = "A link [site](https://example.com) but no image."
+        self.assertEqual(extract_markdown_images(text), [])
+    
+    def test_mixed_content_only_images(self):
+        text = "Here is ![one](a.png), a link [site](https://example.com), and ![two](b.jpg)."
+        self.assertEqual(
+            extract_markdown_images(text),
+            [
+                ("![one](a.png)", "one", "a.png"),
+                ("![two](b.jpg)", "two", "b.jpg"),
+            ],
+        )
+
+
+class TestExtractMarkdownLinks(unittest.TestCase):
+    def test_single_link(self):
+        text = "Go to [Example](https://example.com)."
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("[Example](https://example.com)", "Example", "https://example.com")],
+        )
+
+    def test_multiple_links(self):
+        text = "[One](a) and [Two](b) and [Three](c)."
+        self.assertEqual(
+            extract_markdown_links(text),
+            [
+                ("[One](a)", "One", "a"),
+                ("[Two](b)", "Two", "b"),
+                ("[Three](c)", "Three", "c"),
+            ],
+        )
+
+    def test_ignores_images(self):
+        # Links extractor must ignore images (due to negative lookbehind)
+        text = "![Alt](img.png) and [Real Link](https://example.com)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("[Real Link](https://example.com)", "Real Link", "https://example.com")],
+        )
+    
+    def test_mixed_content_only_links(self):
+        text = "Here is [one](a), an image ![img](b.png), and [two](c)."
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("[one](a)", "one", "a"), ("[two](c)", "two", "c")],
+        )
+
+    def test_no_links(self):
+        text = "Just text with (parentheses) and [brackets] but not links."
+        self.assertEqual(extract_markdown_links(text), [])
