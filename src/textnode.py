@@ -43,5 +43,6 @@ def text_node_to_html_node(text_node:TextNode) -> HTMLNode:
             if text_node.url is None:
                 raise ValueError("Image TextNode must have a URL")
             return LeafNode("img", None, {"src": text_node.url, "alt": text_node.text})
-        case _:
+        # cant really unittest for this so exclude from coverage
+        case _: # pragma: no cover
             raise ValueError(f"Unhandled TextType: {text_node.text_type}")
