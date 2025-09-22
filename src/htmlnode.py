@@ -106,11 +106,17 @@ def parse_code_block(block:str) -> HTMLNode:
 def parse_quote_block(block:str) -> HTMLNode:
     block = block.strip()
     # remove the quote markers
-    quotelines = [ql for ql in re.split(r"^\s*>\s*", block, flags=re.MULTILINE) if ql.strip()]
+    quotelines = [ql.strip() for ql in re.split(r"^\s*>\s*", block, flags=re.MULTILINE) if ql.strip()]
     child_nodes = []
+    single_child = len(quotelines) == 1
     for ql in quotelines:
         text_nodes = text_to_textnodes(ql)
-        child_nodes.extend([text_node_to_html_node(text_node) for text_node in text_nodes])
+        html_nodes = [text_node_to_html_node(tn) for tn in text_nodes]
+        if single_child:
+            child_nodes.extend(html_nodes)
+        else:
+            p_wrapper = ParentNode("p", children=[text_node_to_html_node(tn) for tn in text_nodes])
+            child_nodes.append(p_wrapper)
     return ParentNode("blockquote", children=child_nodes)
 
 
