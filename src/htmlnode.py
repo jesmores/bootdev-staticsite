@@ -101,7 +101,7 @@ def parse_code_block(block:str) -> HTMLNode:
     match = re.match(r"^```(.*)```$", block, flags=re.DOTALL)
     if not match:
         raise ValueError(f"Invalid code block: {block}")
-    return LeafNode("code", match.group(1))
+    return ParentNode("pre", children=[LeafNode("code", match.group(1))])
 
 def parse_quote_block(block:str) -> HTMLNode:
     block = block.strip()

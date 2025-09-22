@@ -292,17 +292,17 @@ class TestParseHeadingBlock(unittest.TestCase):
 class TestParseCodeBlock(unittest.TestCase):
     def test_valid_code_block(self):
         code = """```i am a code block```"""
-        expected = LeafNode("code", "i am a code block")
+        expected = ParentNode("pre", children=[LeafNode("code", "i am a code block")])
         self.assertEqual(parse_code_block(code), expected)
 
     def test_empty_code_block(self):
         code = """``````"""
-        expected = LeafNode("code", "")
+        expected = ParentNode("pre", children=[LeafNode("code", "")])
         self.assertEqual(parse_code_block(code), expected)
 
     def test_code_block_preserve_format_codes(self):
         code = """```this is a code block\nwith embedded\n\nnewlines and *markdown*\nit should not process them```"""
-        expected = LeafNode("code", "this is a code block\nwith embedded\n\nnewlines and *markdown*\nit should not process them")
+        expected = ParentNode("pre", children=[LeafNode("code", "this is a code block\nwith embedded\n\nnewlines and *markdown*\nit should not process them")])
         self.assertEqual(parse_code_block(code), expected)
 
 
@@ -485,7 +485,7 @@ and possibly extra blocks
 
 now it's the end and we can go back to **normal text**"""
         html_str = markdown_to_html_node(md_text).to_html()
-        expected_html = "<div><h1>Code Block testing</h1><code>a code block</code><p>just some text</p><code>\nanother code block with\nmultiple lines\n\nand possibly extra blocks\n\n*oh no* it shouldnt be replacing these **markdown** inside the code block\n</code><p>now it's the end and we can go back to <b>normal text</b></p></div>"
+        expected_html = "<div><h1>Code Block testing</h1><pre><code>a code block</code></pre><p>just some text</p><pre><code>\nanother code block with\nmultiple lines\n\nand possibly extra blocks\n\n*oh no* it shouldnt be replacing these **markdown** inside the code block\n</code></pre><p>now it's the end and we can go back to <b>normal text</b></p></div>"
         self.assertEqual(html_str, expected_html)
 
     def test_quote_blocks(self):
