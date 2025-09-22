@@ -16,7 +16,7 @@ class TestSplitDelimiter(unittest.TestCase):
             ],
             new_nodes,
         )
-    
+
     def test_split_nodes_border(self):
         node = TextNode("**Bold at start** and normal and *italic at end*", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
@@ -29,7 +29,7 @@ class TestSplitDelimiter(unittest.TestCase):
             ],
             new_nodes,
         )
-    
+
     def test_split_nodes_consecutive_delimiters(self):
         node = TextNode("`CodeBlock``MoreCode` normal text ` end code`` at the border`", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
@@ -158,7 +158,7 @@ class TestExtractMarkdownImages(unittest.TestCase):
         # Plain links shouldn't be captured by image extractor
         text = "A link [site](https://example.com) but no image."
         self.assertEqual(extract_markdown_images(text), [])
-    
+
     def test_mixed_content_only_images(self):
         text = "Here is ![one](a.png), a link [site](https://example.com), and ![two](b.jpg)."
         self.assertEqual(
@@ -196,7 +196,7 @@ class TestExtractMarkdownLinks(unittest.TestCase):
             extract_markdown_links(text),
             [("[Real Link](https://example.com)", "Real Link", "https://example.com")],
         )
-    
+
     def test_mixed_content_only_links(self):
         text = "Here is [one](a), an image ![img](b.png), and [two](c)."
         self.assertEqual(
@@ -324,7 +324,7 @@ class TestSplitReplaceStringsWithNodes(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_replace_with_text_node_raises_error(self):
         nodes = [TextNode("hello world", TextType.TEXT)]
         splits = [("world", TextNode("everyone", TextType.TEXT))]
@@ -358,7 +358,7 @@ class TestSplitNodesImages(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_multiword_alt_text(self):
         nodes = [TextNode("Here is ![an image](img.png) in text", TextType.TEXT)]
         result = split_nodes_images(nodes)
@@ -405,7 +405,7 @@ class TestSplitNodesImages(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_garbled_image_syntax(self):
         nodes = [
             TextNode("This is ![not an image(https://example.com) text", TextType.TEXT),
@@ -486,7 +486,7 @@ class TestSplitNodesLinks(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_garbled_link_syntax(self):
         nodes = [
             TextNode("This is [not a link(https://example.com) text", TextType.TEXT),
@@ -531,7 +531,7 @@ class TestParseTextToTextNodes(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_border_delimiter(self):
         text = "**Bold at start** and normal and *italic at end*"
         result = text_to_textnodes(text)
@@ -543,7 +543,7 @@ class TestParseTextToTextNodes(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_border_image_link(self):
         text = "![img](a.png) middle [link](b.com)"
         result = text_to_textnodes(text)
@@ -555,7 +555,7 @@ class TestParseTextToTextNodes(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_adjacent_simple_and_image_or_link(self):
         text = "This is **bold**![img](a.png)[link](b.com)*italic*`code`"
         result = text_to_textnodes(text)
@@ -570,7 +570,7 @@ class TestParseTextToTextNodes(unittest.TestCase):
             ],
             result,
         )
-    
+
     def test_embedded_delimiters_in_image_or_link(self):
         text = "![**bold alt**](a.png) and [*italic link*](b.com)"
         result = text_to_textnodes(text)
@@ -590,7 +590,7 @@ class TestBlockSplitter(unittest.TestCase):
         text = "This is a single block of text."
         result = markdown_to_blocks(text)
         self.assertListEqual([text], result)
-    
+
     def test_no_text(self):
         text = "\n\n\n"
         result = markdown_to_blocks(text)
@@ -626,7 +626,7 @@ class TestBlockSplitter(unittest.TestCase):
         self.assertListEqual(
             ["Block with leading/trailing spaces.", "Another block."], result
         )
-    
+
     def test_single_newlines_no_split(self):
         text = "\n\nThis is a block\nwith a single newline.\n\t\t   \nNow this is \na new block.\n"
         result = markdown_to_blocks(text)
@@ -634,7 +634,7 @@ class TestBlockSplitter(unittest.TestCase):
             ["This is a block\nwith a single newline.", "Now this is \na new block."],
             result
         )
-    
+
     def test_code_blocks(self):
         text = "Here is some code:\n\n```\ndef foo():\n    return 'bar'\n```\n\nAnd some more text."
         result = markdown_to_blocks(text)
@@ -646,7 +646,7 @@ class TestBlockSplitter(unittest.TestCase):
             ],
             result
         )
-    
+
     def test_code_blocks_preserve_newlines(self):
         text = "Here is a cobe block:\n\n```This code block\n\nhas internal blocks\nwith newlines\n\t\nand another block.```\n\nThey should have been preserved."
         result = markdown_to_blocks(text)
@@ -658,7 +658,7 @@ class TestBlockSplitter(unittest.TestCase):
             ],
             result
         )
-    
+
     def test_code_blocks_surrounded_by_whitespace(self):
         text = "Here is a code block:  \t  ```This code block\n\nNew Block\nNew Line\n\nAnother block.```  \n\nEnd Text."
         result = markdown_to_blocks(text)

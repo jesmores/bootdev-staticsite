@@ -1,7 +1,8 @@
 import re
-from textnode import *
-from htmlnode import *
 import copy
+from enum import Enum
+
+from textnode import TextNode, TextType
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -75,7 +76,7 @@ def split_replace_strings_with_nodes(old_nodes:list[TextNode], splits:list[tuple
     # if there is nothing to split, just return the original list
     if not splits:
         return old_nodes
-    
+
     new_nodes = copy.deepcopy(old_nodes)
     for match, new_node in splits:
         if new_node.text_type == TextType.TEXT:
@@ -129,7 +130,7 @@ def split_nodes_links(old_nodes:list[TextNode]) -> list[TextNode]:
         if not link_matches:
             new_nodes.append(node)
             continue
-        
+
         # otherwise process the link matches and create nodes for the link matches
         replacements = [(match[0], TextNode(match[1], TextType.HYPERLINK, match[2])) for match in link_matches]
         new_nodes.extend(split_replace_strings_with_nodes([node], replacements))
@@ -151,7 +152,7 @@ def text_to_textnodes(text:str) -> list[TextNode]:
     nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
     nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
     nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
-    
+
     return nodes
 
 
@@ -187,3 +188,4 @@ def block_to_block_type(block:str) -> BlockType:
             return BlockType.ORDERED_LIST
         case _:
             return BlockType.PARAGRAPH
+
