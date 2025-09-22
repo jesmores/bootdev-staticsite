@@ -119,6 +119,31 @@ def parse_quote_block(block:str) -> HTMLNode:
             child_nodes.append(p_wrapper)
     return ParentNode("blockquote", children=child_nodes)
 
+def parse_unordered_list_block(block:str) -> HTMLNode:
+    block = block.strip()
+    list_items = [li.strip() for li in re.split(r"^\s*-\s+", block, flags=re.MULTILINE) if li.strip()]
+    child_nodes = []
+    for li in list_items:
+        text_nodes = text_to_textnodes(li)
+        html_nodes = [text_node_to_html_node(tn) for tn in text_nodes]
+        li_wrapper = ParentNode("li", children=html_nodes)
+        child_nodes.append(li_wrapper)
+    return ParentNode("ul", children=child_nodes)
+
+def parse_ordered_list_block(block:str) -> HTMLNode:
+    block = block.strip()
+    # this will be pretty similar to unordered list parsing
+    # also remember that the numbers don't matter since they are auto-numbered in HTML
+    list_items = [li.strip() for li in re.split(r"^\s*\d+\.\s+", block, flags=re.MULTILINE) if li.strip()]
+    child_nodes = []
+    for li in list_items:
+        text_nodes = text_to_textnodes(li)
+        html_nodes = [text_node_to_html_node(tn) for tn in text_nodes]
+        li_wrapper = ParentNode("li", children=html_nodes)
+        child_nodes.append(li_wrapper)
+    return ParentNode("ol", children=child_nodes)
+
+
 
 def markdown_to_html_node(markdown:str) -> HTMLNode:
     """Convert markdown string to HTMLNode tree."""
@@ -138,10 +163,10 @@ def markdown_to_html_node(markdown:str) -> HTMLNode:
                 child_nodes.append(parse_quote_block(block))
             case BlockType.UNORDERED_LIST:
                 # Placeholder for unordered list block handling
-                raise NotImplementedError("Unordered list block handling not implemented yet")
+                child_nodes.append(parse_unordered_list_block(block))
             case BlockType.ORDERED_LIST:
                 # Placeholder for ordered list block handling
-                raise NotImplementedError("Ordered list block handling not implemented yet")
+                child_nodes.append(parse_ordered_list_block(block))
             case BlockType.PARAGRAPH:
                 # Placeholder for paragraph block handling
                 text_nodes = text_to_textnodes(block)

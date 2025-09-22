@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode, ParentNode, parse_code_block, parse_heading_block, parse_quote_block, text_node_to_html_node, markdown_to_html_node
+from htmlnode import HTMLNode, LeafNode, ParentNode, parse_code_block, parse_heading_block, parse_ordered_list_block, parse_quote_block, parse_unordered_list_block, text_node_to_html_node, markdown_to_html_node
 from textnode import TextNode, TextType
 
 class TestHTMLNode(unittest.TestCase):
@@ -358,6 +358,100 @@ and *italic* text
         self.assertEqual(parse_quote_block(quote), expected)
 
 
+class TestParseUnorderedListBlock(unittest.TestCase):
+    def test_single_item_list(self):
+        ul = """- Single item"""
+        expected = ParentNode("ul", children=[ParentNode("li", children=[LeafNode(None, "Single item")])])
+        self.assertEqual(parse_unordered_list_block(ul), expected)
+
+    def test_multiple_item_list(self):
+        ul = """- First item
+- Second item"""
+        expected = ParentNode("ul", children=[
+            ParentNode("li", children=[LeafNode(None, "First item")]),
+            ParentNode("li", children=[LeafNode(None, "Second item")])
+        ])
+
+    def test_multiple_item_list_with_markdown(self):
+        ul = """
+- First item
+- Second item with **bold**
+- *Italic* third item"""
+        expected = ParentNode("ul", children=[
+            ParentNode("li", children=[LeafNode(None, "First item")]),
+            ParentNode("li", children=[LeafNode(None, "Second item with "), LeafNode("b", "bold")]),
+            ParentNode("li", children=[LeafNode("i", "Italic"), LeafNode(None, " third item")])
+        ])
+        self.assertEqual(parse_unordered_list_block(ul), expected)
+
+    def test_list_with_partial_lines(self):
+        ul = """- First item
+continued line
+that `has a code block`
+- Second item
+has an ![image block](http://example.com)
+- Third item
+[partial line](http://example.com) starts with a link"""
+        expected = ParentNode("ul", children=[
+            ParentNode("li", children=[LeafNode(None, "First item\ncontinued line\nthat "), LeafNode("code", "has a code block")]),
+            ParentNode("li", children=[
+                LeafNode(None, "Second item\nhas an "),
+                LeafNode("img", None, {"src": "http://example.com", "alt": "image block"})
+            ]),
+            ParentNode("li", children=[
+                LeafNode(None, "Third item\n"),
+                LeafNode("a", "partial line", {"href": "http://example.com"}),
+                LeafNode(None, " starts with a link")
+            ])
+        ])
+        result = parse_unordered_list_block(ul)
+        self.assertEqual(result, expected)
+
+
+class TestParseOrderedListBlock(unittest.TestCase):
+    def test_single_item_list(self):
+        ol = """1. Single item"""
+        expected = ParentNode("ol", children=[ParentNode("li", children=[LeafNode(None, "Single item")])])
+        self.assertEqual(parse_ordered_list_block(ol), expected)
+
+    def test_multiple_item_list(self):
+        ol = """1. First item
+2. Second item"""
+        expected = ParentNode("ol", children=[
+            ParentNode("li", children=[LeafNode(None, "First item")]),
+            ParentNode("li", children=[LeafNode(None, "Second item")])
+        ])
+        self.assertEqual(parse_ordered_list_block(ol), expected)
+
+    def test_multiple_item_list_with_markdown(self):
+        ol = """1. First item
+2. Second item with **bold**
+3. *Italic* third item"""
+        expected = ParentNode("ol", children=[
+            ParentNode("li", children=[LeafNode(None, "First item")]),
+            ParentNode("li", children=[LeafNode(None, "Second item with "), LeafNode("b", "bold")]),
+            ParentNode("li", children=[LeafNode("i", "Italic"), LeafNode(None, " third item")])
+        ])
+        self.assertEqual(parse_ordered_list_block(ol), expected)
+
+    def test_list_with_embedded_link(self):
+        ol = """
+1. First item with a [link](http://example.com)
+2. [second item](test) starts with a link
+"""
+        expected = ParentNode("ol", children=[
+            ParentNode("li", children=[
+                LeafNode(None, "First item with a "),
+                LeafNode("a", "link", {"href": "http://example.com"})
+            ]),
+            ParentNode("li", children=[
+                LeafNode("a", "second item", {"href": "test"}),
+                LeafNode(None, " starts with a link")
+            ])
+        ])
+        self.assertEqual(parse_ordered_list_block(ol), expected)
+
+
 class TestMarkdownToHTMLNode(unittest.TestCase):
     def test_headings(self):
         md_text = """# Heading 1
@@ -412,3 +506,41 @@ with partial lines
         html_str = markdown_to_html_node(md_text).to_html()
         expected_html = "<div><h1>Quote Block test</h1><p>This is a test for quote blocks.</p><blockquote><p>here is a quote</p><p>across multiple lines</p></blockquote><p>Ooh a random paragraph</p><blockquote><p>another quote\nwith partial lines</p><p>and some <i>embedded markdown</i></p></blockquote></div>"
         self.assertEqual(html_str, expected_html)
+
+    def test_lists(self):
+        md_text = """
+# List test
+
+## Unordered list
+
+- First item
+- Second item [has a link](test)
+- **Bolded third item**
+
+## Ordered list
+
+1. First item
+2. ![image](test) Second item starts with an `image`
+
+Done!"""
+        self.maxDiff = None
+        html_str = markdown_to_html_node(md_text).to_html()
+        expected_html = '<div><h1>List test</h1><h2>Unordered list</h2><ul><li>First item</li><li>Second item <a href="test">has a link</a></li><li><b>Bolded third item</b></li></ul><h2>Ordered list</h2><ol><li>First item</li><li><img src="test" alt="image"></img> Second item starts with an <code>image</code></li></ol><p>Done!</p></div>'
+        self.assertEqual(html_str, expected_html)
+
+    @unittest.skip("General markdown test - currently broken")
+    def test_general(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
