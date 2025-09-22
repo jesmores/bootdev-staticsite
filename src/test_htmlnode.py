@@ -247,7 +247,7 @@ class TestParseHeadingBlock(unittest.TestCase):
 
     def test_h2_heading_with_inlines(self):
         self.assertEqual(
-            parse_heading_block("## Heading with **bold** and *italic* text"),
+            parse_heading_block("## Heading with **bold** and _italic_ text"),
             ParentNode(
                 "h2",
                 [
@@ -262,7 +262,7 @@ class TestParseHeadingBlock(unittest.TestCase):
 
     def test_heading_with_inline_at_borders(self):
         self.assertEqual(
-            parse_heading_block("### **Bold** at start and *italic* at end `with code`"),
+            parse_heading_block("### **Bold** at start and _italic_ at end `with code`"),
             ParentNode(
                 "h3",
                 [
@@ -329,7 +329,7 @@ class TestParseQuoteBlock(unittest.TestCase):
     def test_multiline_quote_with_inline_markdown(self):
         quote ="""
 > This is a quote with **bold** text
-and *italic* text
+and _italic_ text
 > it even has `code` inlines
 """
         expected = ParentNode(
@@ -376,7 +376,7 @@ class TestParseUnorderedListBlock(unittest.TestCase):
         ul = """
 - First item
 - Second item with **bold**
-- *Italic* third item"""
+- _Italic_ third item"""
         expected = ParentNode("ul", children=[
             ParentNode("li", children=[LeafNode(None, "First item")]),
             ParentNode("li", children=[LeafNode(None, "Second item with "), LeafNode("b", "bold")]),
@@ -426,7 +426,7 @@ class TestParseOrderedListBlock(unittest.TestCase):
     def test_multiple_item_list_with_markdown(self):
         ol = """1. First item
 2. Second item with **bold**
-3. *Italic* third item"""
+3. _Italic_ third item"""
         expected = ParentNode("ol", children=[
             ParentNode("li", children=[LeafNode(None, "First item")]),
             ParentNode("li", children=[LeafNode(None, "Second item with "), LeafNode("b", "bold")]),
@@ -456,7 +456,7 @@ class TestMarkdownToHTMLNode(unittest.TestCase):
     def test_headings(self):
         md_text = """# Heading 1
 
-## Heading 2 *with italic*
+## Heading 2 _with italic_
 
 ### Heading 3 with `code`
 
@@ -501,7 +501,7 @@ Ooh a random paragraph
 
 > another quote
 with partial lines
-> and some *embedded markdown*
+> and some _embedded markdown_
 """
         html_str = markdown_to_html_node(md_text).to_html()
         expected_html = "<div><h1>Quote Block test</h1><p>This is a test for quote blocks.</p><blockquote><p>here is a quote</p><p>across multiple lines</p></blockquote><p>Ooh a random paragraph</p><blockquote><p>another quote\nwith partial lines</p><p>and some <i>embedded markdown</i></p></blockquote></div>"

@@ -513,7 +513,7 @@ class TestParseTextToTextNodes(unittest.TestCase):
         self.assertListEqual([TextNode(text, TextType.TEXT)], result)
 
     def test_composite_case(self):
-        text = "This is **bold** and *italic* and a `code` block with a [link](https://example.com) and an image ![alt](img.png)."
+        text = "This is **bold** and _italic_ and a `code` block with a [link](https://example.com) and an image ![alt](img.png)."
         result = text_to_textnodes(text)
         self.assertListEqual(
             [
@@ -533,7 +533,7 @@ class TestParseTextToTextNodes(unittest.TestCase):
         )
 
     def test_border_delimiter(self):
-        text = "**Bold at start** and normal and *italic at end*"
+        text = "**Bold at start** and normal and _italic at end_"
         result = text_to_textnodes(text)
         self.assertListEqual(
             [
@@ -557,7 +557,7 @@ class TestParseTextToTextNodes(unittest.TestCase):
         )
 
     def test_adjacent_simple_and_image_or_link(self):
-        text = "This is **bold**![img](a.png)[link](b.com)*italic*`code`"
+        text = "This is **bold**![img](a.png)[link](b.com)_italic_`code`"
         result = text_to_textnodes(text)
         self.assertListEqual(
             [
