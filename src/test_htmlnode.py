@@ -378,7 +378,6 @@ now it's the end and we can go back to **normal text**"""
         expected_html = "<div><h1>Code Block testing</h1><code>a code block</code><p>just some text</p><code>\nanother code block with\nmultiple lines\n\nand possibly extra blocks\n\n*oh no* it shouldnt be replacing these **markdown** inside the code block\n</code><p>now it's the end and we can go back to <b>normal text</b></p></div>"
         self.assertEqual(html_str, expected_html)
 
-    @unittest.skip("Quote block parsing currently broken.")
     def test_quote_blocks(self):
         md_text = """
 # Quote Block test

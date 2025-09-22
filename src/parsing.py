@@ -175,16 +175,19 @@ def markdown_to_blocks(md_text:str) -> list[str]:
 
 def block_to_block_type(block:str) -> BlockType:
     # Note the following regexes assume the blocks have been stripped of leading/trailing whitespace
+    # for quote, and the list types, we only check the start of the block since they can span multiple lines
+    #   but the syntax supports collapsing multiple lines with the appropriate prefix, as long as they
+    #   are not separated by blank lines (otherwise that would start a new block)
     match block:
         case b if re.match(r"^#{1,6}\s", b):
             return BlockType.HEADING
         case b if re.match(r"^```.*```$", b, flags=re.DOTALL):
             return BlockType.CODEBLOCK
-        case b if re.match(r"^(?:\s*?>[^\n]*\s*?)+$", b):
+        case b if re.match(r"^\s*>\s*", b):
             return BlockType.QUOTE
-        case b if re.match(r"^(?:\s*?- [^\n]*\s*?)+$", b):
+        case b if re.match(r"^\s*-\s+", b):
             return BlockType.UNORDERED_LIST
-        case b if re.match(r"^(?:\s*?\d+\. [^\n]*\s*?)+$", b):
+        case b if re.match(r"^\s*\d+\.\s+", b):
             return BlockType.ORDERED_LIST
         case _:
             return BlockType.PARAGRAPH

@@ -700,14 +700,12 @@ class TestBlockToBlockType(unittest.TestCase):
         self.assertEqual(block_to_block_type("- item1\n- item2"), BlockType.UNORDERED_LIST)
         self.assertEqual(block_to_block_type("- item1\n    - item2"), BlockType.UNORDERED_LIST)
         self.assertNotEqual(block_to_block_type("-itemA"), BlockType.UNORDERED_LIST)
-        self.assertNotEqual(block_to_block_type("- itemA\n    -itemB"), BlockType.UNORDERED_LIST)
 
     def test_ordered_list_block(self):
         self.assertEqual(block_to_block_type("1. item1\n2. item2"), BlockType.ORDERED_LIST)
         self.assertEqual(block_to_block_type("1. item1\n3. item2"), BlockType.ORDERED_LIST)
         self.assertEqual(block_to_block_type("321. item1\n   332. item2"), BlockType.ORDERED_LIST)
         self.assertNotEqual(block_to_block_type("1.itemA"), BlockType.ORDERED_LIST)
-        self.assertNotEqual(block_to_block_type("1. itemA\n   2.itemB"), BlockType.ORDERED_LIST)
 
     def test_paragraph_block(self):
         self.assertEqual(block_to_block_type("Just a paragraph."), BlockType.PARAGRAPH)
