@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode, ParentNode, parse_code_block, parse_heading_block, parse_ordered_list_block, parse_quote_block, parse_unordered_list_block, text_node_to_html_node, markdown_to_html_node
+from htmlnode import HTMLNode, LeafNode, ParentNode, convert_newlines_to_spaces, parse_code_block, parse_heading_block, parse_ordered_list_block, parse_quote_block, parse_unordered_list_block, text_node_to_html_node, markdown_to_html_node
 from textnode import TextNode, TextType
 
 class TestHTMLNode(unittest.TestCase):
@@ -239,6 +239,23 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
             text_node_to_html_node(text_node)
 
 
+class TestConvertNewlinesToSpaces(unittest.TestCase):
+    def test_simple_newline(self):
+        text = "This is a line.\nThis is another line."
+        expected = "This is a line. This is another line."
+        self.assertEqual(convert_newlines_to_spaces(text), expected)
+
+    def test_multiple_newlines(self):
+        text = "Line one.\n\nLine two.\n\n\nLine three."
+        expected = "Line one. Line two. Line three."
+        self.assertEqual(convert_newlines_to_spaces(text), expected)
+
+    def test_leading_line_whitespace(self):
+        text = "   Whitespace\n   new line with whites \n \t\n\t     and more spaces.\n"
+        expected = "Whitespace new line with whites and more spaces."
+        self.assertEqual(convert_newlines_to_spaces(text), expected)
+
+
 class TestParseHeadingBlock(unittest.TestCase):
     def test_valid_h1_heading(self):
         self.assertEqual(parse_heading_block("# Heading 1"), ParentNode("h1", [LeafNode(None, "Heading 1")]))
@@ -258,6 +275,12 @@ class TestParseHeadingBlock(unittest.TestCase):
                     LeafNode(None, " text"),
                 ],
             ),
+        )
+
+    def test_heading_partial_lines(self):
+        self.assertEqual(
+            parse_heading_block("# Heading\nwith partial line\nwhoops"),
+            ParentNode("h1", [LeafNode(None, "Heading with partial line whoops")])
         )
 
     def test_heading_with_inline_at_borders(self):
@@ -340,7 +363,7 @@ and _italic_ text
                     [
                         LeafNode(None, "This is a quote with "),
                         LeafNode("b", "bold"),
-                        LeafNode(None, " text\nand "),
+                        LeafNode(None, " text and "),
                         LeafNode("i", "italic"),
                         LeafNode(None, " text"),
                     ],
@@ -393,13 +416,13 @@ has an ![image block](http://example.com)
 - Third item
 [partial line](http://example.com) starts with a link"""
         expected = ParentNode("ul", children=[
-            ParentNode("li", children=[LeafNode(None, "First item\ncontinued line\nthat "), LeafNode("code", "has a code block")]),
+            ParentNode("li", children=[LeafNode(None, "First item continued line that "), LeafNode("code", "has a code block")]),
             ParentNode("li", children=[
-                LeafNode(None, "Second item\nhas an "),
+                LeafNode(None, "Second item has an "),
                 LeafNode("img", None, {"src": "http://example.com", "alt": "image block"})
             ]),
             ParentNode("li", children=[
-                LeafNode(None, "Third item\n"),
+                LeafNode(None, "Third item "),
                 LeafNode("a", "partial line", {"href": "http://example.com"}),
                 LeafNode(None, " starts with a link")
             ])
@@ -485,7 +508,7 @@ and possibly extra blocks
 
 now it's the end and we can go back to **normal text**"""
         html_str = markdown_to_html_node(md_text).to_html()
-        expected_html = "<div><h1>Code Block testing</h1><pre><code>a code block</code></pre><p>just some text</p><pre><code>\nanother code block with\nmultiple lines\n\nand possibly extra blocks\n\n*oh no* it shouldnt be replacing these **markdown** inside the code block\n</code></pre><p>now it's the end and we can go back to <b>normal text</b></p></div>"
+        expected_html = "<div><h1>Code Block testing</h1><pre><code>a code block</code></pre><p>just some text</p><pre><code>another code block with\nmultiple lines\n\nand possibly extra blocks\n\n*oh no* it shouldnt be replacing these **markdown** inside the code block\n</code></pre><p>now it's the end and we can go back to <b>normal text</b></p></div>"
         self.assertEqual(html_str, expected_html)
 
     def test_quote_blocks(self):
@@ -504,7 +527,7 @@ with partial lines
 > and some _embedded markdown_
 """
         html_str = markdown_to_html_node(md_text).to_html()
-        expected_html = "<div><h1>Quote Block test</h1><p>This is a test for quote blocks.</p><blockquote><p>here is a quote</p><p>across multiple lines</p></blockquote><p>Ooh a random paragraph</p><blockquote><p>another quote\nwith partial lines</p><p>and some <i>embedded markdown</i></p></blockquote></div>"
+        expected_html = "<div><h1>Quote Block test</h1><p>This is a test for quote blocks.</p><blockquote><p>here is a quote</p><p>across multiple lines</p></blockquote><p>Ooh a random paragraph</p><blockquote><p>another quote with partial lines</p><p>and some <i>embedded markdown</i></p></blockquote></div>"
         self.assertEqual(html_str, expected_html)
 
     def test_lists(self):
@@ -528,7 +551,6 @@ Done!"""
         expected_html = '<div><h1>List test</h1><h2>Unordered list</h2><ul><li>First item</li><li>Second item <a href="test">has a link</a></li><li><b>Bolded third item</b></li></ul><h2>Ordered list</h2><ol><li>First item</li><li><img src="test" alt="image"></img> Second item starts with an <code>image</code></li></ol><p>Done!</p></div>'
         self.assertEqual(html_str, expected_html)
 
-    @unittest.skip("General markdown test - currently broken")
     def test_general(self):
         md = """
 This is **bolded** paragraph
@@ -543,4 +565,18 @@ This is another paragraph with _italic_ text and `code` here
         self.assertEqual(
             html,
             "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+    def test_general_codeblock(self):
+        md = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )

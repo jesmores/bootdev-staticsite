@@ -83,15 +83,21 @@ def text_node_to_html_node(text_node:TextNode) -> HTMLNode:
         case _: # pragma: no cover
             raise ValueError(f"Unhandled TextType: {text_node.text_type}")
 
+def convert_newlines_to_spaces(text:str) -> str:
+    """Convert newlines in text to spaces, collapsing multiple spaces."""
+    # collapse newlines to spaces
+    return re.sub(r"\s*\n\s*", " ", text).strip()
+
+
 
 def parse_heading_block(block:str) -> HTMLNode:
     """Parse a heading block and return an HTMLNode."""
     block = block.strip()
-    match = re.match(r"^(#{1,6})\s+(.*)$", block)
+    match = re.match(r"^(#{1,6})\s+(.*)$", block, flags=re.DOTALL)
     if not match:
         raise ValueError(f"Invalid heading block: {block}")
     level = len(match.group(1))
-    content = match.group(2)
+    content = convert_newlines_to_spaces(match.group(2))
     text_nodes = text_to_textnodes(content)
     child_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
     return ParentNode(f"h{level}", children=child_nodes)
@@ -101,7 +107,8 @@ def parse_code_block(block:str) -> HTMLNode:
     match = re.match(r"^```(.*)```$", block, flags=re.DOTALL)
     if not match:
         raise ValueError(f"Invalid code block: {block}")
-    return ParentNode("pre", children=[LeafNode("code", match.group(1))])
+    match_text = match.group(1).lstrip()
+    return ParentNode("pre", children=[LeafNode("code", match_text)])
 
 def parse_quote_block(block:str) -> HTMLNode:
     block = block.strip()
@@ -110,6 +117,7 @@ def parse_quote_block(block:str) -> HTMLNode:
     child_nodes = []
     single_child = len(quotelines) == 1
     for ql in quotelines:
+        ql = convert_newlines_to_spaces(ql)
         text_nodes = text_to_textnodes(ql)
         html_nodes = [text_node_to_html_node(tn) for tn in text_nodes]
         if single_child:
@@ -124,6 +132,7 @@ def parse_unordered_list_block(block:str) -> HTMLNode:
     list_items = [li.strip() for li in re.split(r"^\s*-\s+", block, flags=re.MULTILINE) if li.strip()]
     child_nodes = []
     for li in list_items:
+        li = convert_newlines_to_spaces(li)
         text_nodes = text_to_textnodes(li)
         html_nodes = [text_node_to_html_node(tn) for tn in text_nodes]
         li_wrapper = ParentNode("li", children=html_nodes)
@@ -137,6 +146,7 @@ def parse_ordered_list_block(block:str) -> HTMLNode:
     list_items = [li.strip() for li in re.split(r"^\s*\d+\.\s+", block, flags=re.MULTILINE) if li.strip()]
     child_nodes = []
     for li in list_items:
+        li = convert_newlines_to_spaces(li)
         text_nodes = text_to_textnodes(li)
         html_nodes = [text_node_to_html_node(tn) for tn in text_nodes]
         li_wrapper = ParentNode("li", children=html_nodes)
@@ -169,6 +179,7 @@ def markdown_to_html_node(markdown:str) -> HTMLNode:
                 child_nodes.append(parse_ordered_list_block(block))
             case BlockType.PARAGRAPH:
                 # Placeholder for paragraph block handling
+                block = convert_newlines_to_spaces(block)
                 text_nodes = text_to_textnodes(block)
                 para_child_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
                 child_nodes.append(ParentNode("p", children=para_child_nodes))
