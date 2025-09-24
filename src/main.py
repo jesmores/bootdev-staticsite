@@ -2,6 +2,9 @@ import os
 import shutil
 import sys
 
+from htmlnode import markdown_to_html_node
+from parsing import extract_title
+
 
 def scratchpad():
     pass
@@ -61,6 +64,32 @@ def prepare_directory(src:str, dst:str) -> bool:
     return True
 
 
+def generate_page(from_path:str, template_path:str, dest_path:str) -> None:
+    print (f"Generating page from {from_path}  to {dest_path} using {template_path}")
+    # read the source file
+    content_md = ""
+    with open(from_path, 'r', encoding='utf-8') as f:
+        content_md = f.read()
+    # read the template file
+    template_html = ""
+    with open(template_path, 'r', encoding='utf-8') as f:
+        template_html = f.read()
+
+    title_text = extract_title(content_md)
+    content_html = markdown_to_html_node(content_md).to_html()
+
+    title_template_str = "{{ Title }}"
+    content_template_str = "{{ Content }}"
+
+    # replace the template strings with the actual content
+    output_html = template_html.replace(title_template_str, title_text)
+    output_html = output_html.replace(content_template_str, content_html)
+
+    # write output_html to dest_path
+    with open(dest_path, 'w', encoding='utf-8') as f:
+        f.write(output_html)
+
+
 def main():
     # first determine what our script's current directory is
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +104,16 @@ def main():
             sys.exit(1)
     except Exception as e:
         print(f"Error preparing directories: {e}")
+        sys.exit(1)
+
+    content_dir = os.path.join(base_dir, "content")
+    content_file_path = os.path.join(content_dir, "index.md")
+    template_file_path = os.path.join(base_dir, "template.html")
+    output_file_path = os.path.join(public_dir, "index.html")
+    try:
+        generate_page(content_file_path, template_file_path, output_file_path)
+    except Exception as e:
+        print(f"Error generating page: {e}")
         sys.exit(1)
 
 
