@@ -711,3 +711,39 @@ class TestBlockToBlockType(unittest.TestCase):
         self.assertEqual(block_to_block_type("Just a paragraph."), BlockType.PARAGRAPH)
         self.assertEqual(block_to_block_type("1) not an ordered list"), BlockType.PARAGRAPH)
         self.assertEqual(block_to_block_type("hello >not a quote"), BlockType.PARAGRAPH)
+
+
+class TestExtractTitle(unittest.TestCase):
+    def test_single_level_1_heading(self):
+        text = "# This is the Title\n\nSome other text."
+        self.assertEqual(extract_title(text), "This is the Title")
+
+    def test_multiple_headings(self):
+        text = "# Main Title\n\n## Subtitle\n\nMore text.\n\n# Another Title"
+        self.assertEqual(extract_title(text), "Main Title")
+
+    def test_no_level_1_heading(self):
+        text = "## Subtitle Only\n\nNo main title here."
+        print(f"***********{text}")
+        with self.assertRaises(ValueError):
+            extract_title(text)
+
+    def test_heading_with_leading_trailing_spaces(self):
+        text = "#   Title with Spaces   \n\nContent follows."
+        self.assertEqual(extract_title(text), "Title with Spaces")
+
+    def test_heading_with_special_characters(self):
+        text = "# Title! @#$$%^&*()_+\n\nBody text."
+        self.assertEqual(extract_title(text), "Title! @#$$%^&*()_+")
+
+    def test_empty_heading(self):
+        text = "# \n\nNo title text."
+        self.assertEqual(extract_title(text), "")
+
+    def test_heading_not_at_start(self):
+        text = "Some intro text.\n\n# Actual Title\n\nMore content."
+        self.assertEqual(extract_title(text), "Actual Title")
+
+    def test_multiple_level_1_headings_only_first_used(self):
+        text = "# First Title\n# Second Title\n# Third Title"
+        self.assertEqual(extract_title(text), "First Title")

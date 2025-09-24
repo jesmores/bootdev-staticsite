@@ -192,3 +192,15 @@ def block_to_block_type(block:str) -> BlockType:
         case _:
             return BlockType.PARAGRAPH
 
+
+def extract_title(md_test:str) -> str:
+    """Extract a title from given markdown text.
+    This treats the first level 1 heading as the title.
+
+    If no level 1 heading is found, raises an exception"""
+
+    title_pattern = r"^[^\S\n\r\f]*#[^\S\n\r\f]+(.*)$"
+    matches = re.findall(title_pattern, md_test, flags=re.MULTILINE)
+    if not matches:
+        raise ValueError("No level 1 heading found for title")
+    return matches[0].strip()
