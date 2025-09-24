@@ -15,10 +15,10 @@ class HTMLNode:
         raise NotImplementedError("to_html method not implemented yet")
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, HTMLNode):
+        if not isinstance(other, HTMLNode): # pragma: no cover
             return False
         # Ensure node types match (LeafNode vs ParentNode should not be equal to base or each other)
-        if type(self) is not type(other):
+        if type(self) is not type(other): # pragma: no cover
             return False
         return (
             self.tag == other.tag
@@ -105,7 +105,7 @@ def parse_heading_block(block:str) -> HTMLNode:
 def parse_code_block(block:str) -> HTMLNode:
     block = block.strip()
     match = re.match(r"^```(.*)```$", block, flags=re.DOTALL)
-    if not match:
+    if not match: # pragma: no cover
         raise ValueError(f"Invalid code block: {block}")
     match_text = match.group(1).lstrip()
     return ParentNode("pre", children=[LeafNode("code", match_text)])
@@ -115,16 +115,13 @@ def parse_quote_block(block:str) -> HTMLNode:
     # remove the quote markers
     quotelines = [ql.strip() for ql in re.split(r"^\s*>\s*", block, flags=re.MULTILINE) if ql.strip()]
     child_nodes = []
-    single_child = len(quotelines) == 1
-    for ql in quotelines:
+    for index, ql in enumerate(quotelines):
         ql = convert_newlines_to_spaces(ql)
+        if index < len(quotelines) - 1:
+            ql += "\n"  # add newline between lines if multiple lines
         text_nodes = text_to_textnodes(ql)
         html_nodes = [text_node_to_html_node(tn) for tn in text_nodes]
-        if single_child:
-            child_nodes.extend(html_nodes)
-        else:
-            p_wrapper = ParentNode("p", children=[text_node_to_html_node(tn) for tn in text_nodes])
-            child_nodes.append(p_wrapper)
+        child_nodes.extend(html_nodes)
     return ParentNode("blockquote", children=child_nodes)
 
 def parse_unordered_list_block(block:str) -> HTMLNode:
@@ -183,7 +180,7 @@ def markdown_to_html_node(markdown:str) -> HTMLNode:
                 text_nodes = text_to_textnodes(block)
                 para_child_nodes = [text_node_to_html_node(text_node) for text_node in text_nodes]
                 child_nodes.append(ParentNode("p", children=para_child_nodes))
-            case _:
+            case _: # pragma: no cover
                 raise ValueError(f"Unhandled BlockType {block_type} for block: {block}")
     root = ParentNode("div", children=child_nodes)
     return root

@@ -342,12 +342,13 @@ class TestParseQuoteBlock(unittest.TestCase):
         expected = ParentNode(
             "blockquote",
             [
-                ParentNode("p", [LeafNode(None, "This is a quote")]),
-                ParentNode("p", [LeafNode(None, "that spans multiple lines")]),
-                ParentNode("p", [LeafNode(None, "and should be treated as a single block.")]),
+                LeafNode(None, "This is a quote\n"),
+                LeafNode(None, "that spans multiple lines\n"),
+                LeafNode(None, "and should be treated as a single block."),
             ],
         )
-        self.assertEqual(parse_quote_block(quote), expected)
+        result = parse_quote_block(quote)
+        self.assertEqual(result, expected)
 
     def test_multiline_quote_with_inline_markdown(self):
         quote ="""
@@ -358,24 +359,14 @@ and _italic_ text
         expected = ParentNode(
             "blockquote",
             [
-                ParentNode(
-                    "p",
-                    [
-                        LeafNode(None, "This is a quote with "),
-                        LeafNode("b", "bold"),
-                        LeafNode(None, " text and "),
-                        LeafNode("i", "italic"),
-                        LeafNode(None, " text"),
-                    ],
-                ),
-                ParentNode(
-                    "p",
-                    [
-                        LeafNode(None, "it even has "),
-                        LeafNode("code", "code"),
-                        LeafNode(None, " inlines"),
-                    ],
-                ),
+                LeafNode(None, "This is a quote with "),
+                LeafNode("b", "bold"),
+                LeafNode(None, " text and "),
+                LeafNode("i", "italic"),
+                LeafNode(None, " text\n"),
+                LeafNode(None, "it even has "),
+                LeafNode("code", "code"),
+                LeafNode(None, " inlines"),
             ],
         )
         self.assertEqual(parse_quote_block(quote), expected)
@@ -527,7 +518,7 @@ with partial lines
 > and some _embedded markdown_
 """
         html_str = markdown_to_html_node(md_text).to_html()
-        expected_html = "<div><h1>Quote Block test</h1><p>This is a test for quote blocks.</p><blockquote><p>here is a quote</p><p>across multiple lines</p></blockquote><p>Ooh a random paragraph</p><blockquote><p>another quote with partial lines</p><p>and some <i>embedded markdown</i></p></blockquote></div>"
+        expected_html = "<div><h1>Quote Block test</h1><p>This is a test for quote blocks.</p><blockquote>here is a quote\nacross multiple lines</blockquote><p>Ooh a random paragraph</p><blockquote>another quote with partial lines\nand some <i>embedded markdown</i></blockquote></div>"
         self.assertEqual(html_str, expected_html)
 
     def test_lists(self):
